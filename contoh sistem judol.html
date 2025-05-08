@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulasi Judol - Tebak Angka</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #fefefe; }
+    h1 { color: #c0392b; }
+    .container { max-width: 500px; margin: auto; text-align: center; }
+    input[type='number'] { width: 80px; padding: 10px; font-size: 16px; }
+    button { padding: 10px 20px; font-size: 16px; margin-top: 10px; }
+    .result { margin-top: 20px; font-weight: bold; }
+    #chart-container { margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎰 Simulasi Judol: Tebak Angka</h1>
+    <p>Saldo: <span id="saldo">10000</span> koin</p>
+    <p>Masukkan angka 1 - 10:</p>
+    <input type="number" id="inputAngka" min="1" max="10" />
+    <br />
+    <button onclick="mainGame()">Tebak!</button>
+    <div class="result" id="hasil"></div>
+    <div id="chart-container">
+      <canvas id="statChart" width="400" height="200"></canvas>
+    </div>
+  </div>
+
+  <script>
+    let saldo = 10000;
+    let ronde = 0;
+    let menang = 0;
+    let kalah = 0;
+    let totalKerugian = 0;
+
+    function updateSaldoDisplay() {
+      document.getElementById('saldo').innerText = saldo;
+    }
+
+    function mainGame() {
+      const input = document.getElementById('inputAngka');
+      const hasil = document.getElementById('hasil');
+      let tebakan = parseInt(input.value);
+      if (isNaN(tebakan) || tebakan < 1 || tebakan > 10 || saldo < 2000) {
+        alert('Tebakan tidak valid atau saldo tidak cukup!');
+        return;
+      }
+
+      saldo -= 2000;
+      ronde++;
+      let angkaAsli = Math.floor(Math.random() * 10) + 1;
+      let hadiah = 0;
+      let status = '';
+
+      if (saldo < 3000) {
+        if (tebakan === angkaAsli) {
+          hadiah = 1000;
+          saldo += hadiah;
+          menang++;
+          status = `MENANG kecil! (+${hadiah} koin)`;
+        } else {
+          angkaAsli = (tebakan % 10) + 1;
+          kalah++;
+          status = `KALAH! Angka keluar: ${angkaAsli}`;
+        }
+      } else if (ronde % 5 === 0) {
+        angkaAsli = tebakan;
+        hadiah = 1500;
+        saldo += hadiah;
+        menang++;
+        status = `MENANG hadiah palsu! (+${hadiah} koin)`;
+      } else {
+        if (tebakan === angkaAsli) {
+          angkaAsli = (angkaAsli % 10) + 1;
+        }
+        if (tebakan === angkaAsli) {
+          hadiah = 4000;
+          saldo += hadiah;
+          menang++;
+          status = `MENANG besar! (+${hadiah} koin)`;
+        } else {
+          kalah++;
+          totalKerugian += 2000;
+          status = `KALAH! Angka keluar: ${angkaAsli}`;
+        }
+      }
+
+      updateSaldoDisplay();
+      hasil.innerText = status;
+      if (saldo < 2000) showChart();
+    }
+
+    function showChart() {
+      const ctx = document.getElementById('statChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Menang', 'Kalah', 'Kerugian (x1000)'],
+          datasets: [{
+            label: 'Statistik Permainan',
+            data: [menang, kalah, totalKerugian / 1000],
+            backgroundColor: ['green', 'red', 'orange']
+          }]
+        },
+        options: {
+          scales: { y: { beginAtZero: true } },
+          plugins: { legend: { display: false } }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
